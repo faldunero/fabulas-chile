@@ -5,145 +5,171 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Misterios de Chile - Ludolab.cl</title>
     <style>
-        :root { --primary: #1a2a3a; --accent: #f39c12; --bg: #f0f2f5; }
+        :root { --primary: #1a2a3a; --accent: #f39c12; --bg: #f0f2f5; --success: #27ae60; --error: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Contenedor del Mapa Ilustrado */
-        #sidebar-mapa { width: 350px; background: #fff; border-right: 2px solid #ddd; display: flex; flex-direction: column; padding: 10px; position: relative; }
+        /* Lateral: Mapa e Historial */
+        #sidebar { width: 320px; background: #fff; border-right: 2px solid #ddd; display: flex; flex-direction: column; padding: 15px; }
         #chile-map-bg { 
-            flex: 1; 
-            background: url('https://i.pinimg.com/originals/82/8e/3c/828e3c155554199650059c6b76774e17.jpg') no-repeat center; 
-            background-size: contain; 
-            position: relative;
-            border-radius: 15px;
+            flex: 2; background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Chile_map_modern.svg/800px-Chile_map_modern.svg.png') no-repeat center; 
+            background-size: contain; position: relative; background-color: #f9f9f9; border-radius: 10px; margin-bottom: 10px;
         }
+        #marcador { position: absolute; font-size: 30px; transition: all 0.8s ease; left: 50%; transform: translateX(-50%); z-index: 10; }
         
-        /* Marcador de Posición */
-        #marcador { 
-            position: absolute; 
-            font-size: 30px; 
-            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-            left: 50%;
-            transform: translateX(-50%);
-        }
+        #historial { flex: 1; border-top: 2px solid #eee; padding-top: 10px; overflow-y: auto; font-size: 13px; color: #666; }
+        .log-entry { margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #f0f0f0; }
 
-        /* Área de Juego */
+        /* Área Principal */
         #main-game { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        #card-container { 
-            width: 350px; background: #fff; border-radius: 25px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; 
-            text-align: center; border: 4px solid var(--primary);
-        }
-        #card-img { width: 100%; height: 400px; object-fit: cover; background: #eee; }
+        #card-container { width: 340px; background: #fff; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); overflow: hidden; border: 5px solid var(--primary); }
+        #card-img { width: 100%; height: 380px; object-fit: cover; }
         
-        .card-info { padding: 20px; }
-        .card-info h2 { margin: 0; color: var(--primary); font-size: 28px; }
-        .card-info p { color: #666; font-style: italic; margin: 10px 0; min-height: 40px; }
+        .card-info { padding: 20px; text-align: center; }
+        .btn { padding: 12px 25px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px; }
+        .btn-main { background: var(--primary); color: white; }
 
-        /* Botones */
-        .controls { display: flex; gap: 10px; justify-content: center; padding-bottom: 20px; }
-        .btn { padding: 12px 25px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
-        .btn-main { background: var(--primary); color: white; flex: 2; }
-        .btn-sub { background: #dcdde1; color: #7f8c8d; flex: 1; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        .hidden { display: none; }
+        /* Modal */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        #modal-content { background: white; padding: 30px; border-radius: 20px; width: 280px; text-align: center; }
+        input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; text-align: center; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="sidebar-mapa">
-    <h3 style="text-align: center; color: var(--primary);">Expedición Chile</h3>
-    <div id="chile-map-bg">
-        <div id="marcador">📍</div>
-    </div>
+<div id="sidebar">
+    <h3 style="text-align: center; margin-top: 0;">Expedición Chile</h3>
+    <div id="chile-map-bg"><div id="marcador">📍</div></div>
+    <div id="historial"><strong>Historial de Viaje:</strong><div id="log-list"></div></div>
 </div>
 
 <div id="main-game">
-    <div id="setup" class="card-info">
+    <div id="setup">
         <h1>Misterios de Chile</h1>
-        <p>Selecciona tu punto de inicio</p>
-        <button class="btn btn-main" onclick="start('NORTE')">Desde el Norte 🌵</button>
-        <button class="btn btn-main" onclick="start('SUR')">Desde el Sur ❄️</button>
+        <button class="btn btn-main" onclick="iniciar('NORTE')">Ruta Norte 🌵</button>
+        <button class="btn btn-main" style="background:var(--accent)" onclick="iniciar('SUR')">Ruta Sur ❄️</button>
     </div>
 
     <div id="game" class="hidden">
         <div id="card-container">
-            <img id="card-img" src="" alt="Mito">
+            <img id="card-img" src="">
             <div class="card-info">
-                <h2 id="card-title">-</h2>
-                <p id="card-desc">Cargando misterio...</p>
-                <div class="controls">
-                    <button class="btn btn-main" onclick="play()">Resolver Misterio</button>
-                    <button class="btn btn-sub" onclick="location.reload()">Reiniciar</button>
-                </div>
+                <h3 id="card-label">Identifica el Misterio</h3>
+                <p id="hint-text">Observa la imagen con atención...</p>
+                <button id="btn-resolver" class="btn btn-main" onclick="abrirPregunta()">Resolver</button>
+                <button id="btn-siguiente" class="btn btn-main hidden" style="background:var(--success)" onclick="nuevoTurno()">Siguiente Hito</button>
             </div>
         </div>
     </div>
 </div>
 
+<div id="modal-overlay">
+    <div id="modal-content">
+        <h3>¿Qué es esto?</h3>
+        <input type="text" id="respuesta-user" placeholder="Escribe el nombre...">
+        <button class="btn btn-main" onclick="confirmar()">Confirmar</button>
+    </div>
+</div>
+
 <script>
-    // Lista de mitos con posiciones (0 = Arica, 100 = Magallanes)
+    // Configuración de Mitos y Trucos
     const mitos = [
-        { n: "Licanantay", img: "licanantay.jpg", pos: 5 },
-        { n: "La Tirana", img: "la_tirana.jpg", pos: 15 },
-        { n: "Alicanto", img: "ojo_alicanto.jpg", pos: 25 },
-        { n: "Camino a Santiago", img: "camino_santiago.jpg", pos: 45 },
-        { n: "La Llorona", img: "la_llorona.jpg", pos: 55 },
-        { n: "El Caleuche", img: "caleuche.jpg", pos: 75 },
-        { n: "El Trauco", img: "el_trauco.jpg", pos: 85 },
-        { n: "Cuero de Agua", img: "cuero_agua_sur.jpg", pos: 95 }
+        { id: "AM-01CL", n: "Licanantay", img: "licanantay.jpg" },
+        { id: "AM-02CL", n: "La Tirana", img: "la_tirana.jpg" },
+        { id: "AM-03CL", n: "Alicanto", img: "ojo_alicanto.jpg" },
+        { id: "AM-15CL", n: "Camino a Santiago", img: "camino_santiago.jpg" },
+        { id: "AM-25CL", n: "El Caleuche", img: "caleuche.jpg" },
+        { id: "AM-26CL", n: "El Trauco", img: "el_trauco.jpg" }
     ];
 
     const trucos = [
-        { n: "Corriente Humboldt", img: "truco_corriente_humboldt.jpg", move: 10 },
-        { n: "Derrumbe Andino", img: "truco_derrumbe_andino.jpg", move: -10 }
+        { n: "Corriente Humboldt", img: "truco_corriente_humboldt.jpg", eff: 15, msg: "¡Viento a favor! Avanzas extra." },
+        { n: "Derrumbe Andino", img: "truco_derrumbe_andino.jpg", eff: -15, msg: "Camino bloqueado. Retrocedes." }
     ];
 
-    let currentPos = 0;
+    let actual = null;
+    let pos = 10;
     let dir = 'NORTE';
 
-    function start(modo) {
+    function iniciar(modo) {
         dir = modo;
-        currentPos = (modo === 'NORTE') ? 0 : 90;
+        pos = (modo === 'NORTE') ? 5 : 85;
         document.getElementById('setup').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
-        play(); // Carga la primera carta
+        document.getElementById('marcador').style.top = pos + "%";
+        nuevoTurno();
     }
 
-    function play() {
-        let isTruco = Math.random() < 0.25;
-        let item;
-
-        if (isTruco) {
-            item = trucos[Math.floor(Math.random() * trucos.length)];
-            currentPos += (dir === 'NORTE') ? item.move : -item.move;
-            render(item, "trucos", `¡Evento! ${item.n}`);
-        } else {
-            // Avance normal hacia el siguiente mito
-            item = mitos[Math.floor(Math.random() * mitos.length)];
-            currentPos += (dir === 'NORTE') ? 12 : -12;
-            render(item, "mitos", "Has descubierto un nuevo mito. ¡Avanzas!");
-        }
-
-        // Límites
-        if (currentPos < 0) currentPos = 0;
-        if (currentPos > 95) {
-            alert("¡Misión cumplida! Has recorrido todo Chile.");
-            location.reload();
-        }
+    function nuevoTurno() {
+        document.getElementById('btn-resolver').classList.remove('hidden');
+        document.getElementById('btn-siguiente').classList.add('hidden');
         
-        // Mover marcador 📍
-        document.getElementById('marcador').style.top = currentPos + "%";
+        // 25% prob de Truco
+        if (Math.random() < 0.25) {
+            actual = trucos[Math.floor(Math.random() * trucos.length)];
+            actual.esTruco = true;
+            document.getElementById('card-img').src = `imagenes/trucos/${actual.img}`;
+            document.getElementById('card-label').innerText = "¡EVENTO!";
+            document.getElementById('hint-text').innerText = actual.n;
+        } else {
+            actual = mitos[Math.floor(Math.random() * mitos.length)];
+            actual.esTruco = false;
+            document.getElementById('card-img').src = `imagenes/mitos/${actual.img}`;
+            document.getElementById('card-label').innerText = "Identifica el Misterio";
+            document.getElementById('hint-text').innerText = "???";
+        }
     }
 
-    function render(item, folder, msg) {
-        document.getElementById('card-img').src = `imagenes/${folder}/${item.img}`;
-        document.getElementById('card-title').innerText = item.n;
-        document.getElementById('card-desc').innerText = msg;
+    function abrirPregunta() {
+        if (actual.esTruco) {
+            ejecutarTruco();
+        } else {
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('respuesta-user').focus();
+        }
+    }
+
+    function confirmar() {
+        const res = document.getElementById('respuesta-user').value.trim().toLowerCase();
+        document.getElementById('modal-overlay').style.display = 'none';
+        document.getElementById('respuesta-user').value = "";
+
+        // Validación simple: debe contener parte del nombre
+        if (res !== "" && actual.n.toLowerCase().includes(res)) {
+            mover(12, `Correcto: ${actual.n}`);
+            document.getElementById('hint-text').innerHTML = `<span style="color:var(--success)">¡Acertaste! Es ${actual.n}</span>`;
+            document.getElementById('btn-resolver').classList.add('hidden');
+            document.getElementById('btn-siguiente').classList.remove('hidden');
+        } else {
+            addLog(`Fallaste en ${actual.id || 'Mito'}. Te mantienes.`);
+            alert("No es correcto. ¡Mira bien la imagen!");
+        }
+    }
+
+    function ejecutarTruco() {
+        mover(actual.eff, `Truco: ${actual.n}`);
+        document.getElementById('hint-text').innerText = actual.msg;
+        document.getElementById('btn-resolver').classList.add('hidden');
+        document.getElementById('btn-siguiente').classList.remove('hidden');
+    }
+
+    function mover(puntos, detalle) {
+        let avance = (dir === 'NORTE') ? puntos : -puntos;
+        pos += avance;
+        if (pos < 5) pos = 5; if (pos > 90) pos = 90;
+        
+        document.getElementById('marcador').style.top = pos + "%";
+        addLog(`${detalle} (${avance > 0 ? '+' : ''}${avance}%)`);
+    }
+
+    function addLog(msg) {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerText = `> ${msg}`;
+        const list = document.getElementById('log-list');
+        list.prepend(entry);
     }
 </script>
-
 </body>
 </html>
