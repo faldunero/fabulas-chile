@@ -8,30 +8,37 @@
         :root { --primary: #1a2a3a; --accent: #f39c12; --bg: #f0f2f5; --success: #27ae60; --error: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Lateral: Mapa e Historial */
-        #sidebar { width: 320px; background: #fff; border-right: 2px solid #ddd; display: flex; flex-direction: column; padding: 15px; }
-        #chile-map-bg { 
-            flex: 2; background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Chile_map_modern.svg/800px-Chile_map_modern.svg.png') no-repeat center; 
-            background-size: contain; position: relative; background-color: #f9f9f9; border-radius: 10px; margin-bottom: 10px;
+        /* Lateral: Mapa CSS (No falla) */
+        #sidebar { width: 300px; background: #fff; border-right: 2px solid #ddd; display: flex; flex-direction: column; padding: 15px; }
+        #chile-map-css { 
+            flex: 1; position: relative; background: #e3f2fd; border-radius: 15px; 
+            overflow: hidden; border: 2px solid #bbdefb;
         }
-        #marcador { position: absolute; font-size: 30px; transition: all 0.8s ease; left: 50%; transform: translateX(-50%); z-index: 10; }
+        /* Silueta simplificada de Chile con CSS */
+        #silueta { 
+            position: absolute; left: 50%; top: 5%; bottom: 5%; width: 20px; 
+            background: #ffe082; transform: translateX(-50%) skewX(-2deg);
+            border-radius: 10px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        #marcador { position: absolute; font-size: 30px; transition: all 0.8s ease; left: 50%; transform: translateX(-50%); z-index: 10; margin-top: -15px; }
         
-        #historial { flex: 1; border-top: 2px solid #eee; padding-top: 10px; overflow-y: auto; font-size: 13px; color: #666; }
-        .log-entry { margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #f0f0f0; }
+        #historial { height: 150px; border-top: 2px solid #eee; padding-top: 10px; overflow-y: auto; font-size: 12px; }
+        .log-entry { padding: 4px; border-bottom: 1px solid #f9f9f9; }
 
         /* Área Principal */
         #main-game { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        #card-container { width: 340px; background: #fff; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); overflow: hidden; border: 5px solid var(--primary); }
-        #card-img { width: 100%; height: 380px; object-fit: cover; }
+        #card-container { width: 320px; background: #fff; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); overflow: hidden; border: 5px solid var(--primary); }
+        #card-img { width: 100%; height: 350px; object-fit: cover; background: #eee; }
         
-        .card-info { padding: 20px; text-align: center; }
-        .btn { padding: 12px 25px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px; }
+        .card-info { padding: 15px; text-align: center; }
+        .btn { padding: 12px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%; margin: 5px 0; }
         .btn-main { background: var(--primary); color: white; }
+        .btn-pista { background: var(--accent); color: white; font-size: 12px; width: auto; padding: 5px 15px; }
 
         /* Modal */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        #modal-content { background: white; padding: 30px; border-radius: 20px; width: 280px; text-align: center; }
-        input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; text-align: center; }
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        #modal-content { background: white; padding: 25px; border-radius: 20px; width: 280px; text-align: center; }
+        input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; text-align: center; font-size: 18px; }
         
         .hidden { display: none !important; }
     </style>
@@ -39,9 +46,14 @@
 <body>
 
 <div id="sidebar">
-    <h3 style="text-align: center; margin-top: 0;">Expedición Chile</h3>
-    <div id="chile-map-bg"><div id="marcador">📍</div></div>
-    <div id="historial"><strong>Historial de Viaje:</strong><div id="log-list"></div></div>
+    <h3 style="text-align: center;">Expedición Chile</h3>
+    <div id="chile-map-css">
+        <div id="silueta"></div>
+        <div id="marcador">📍</div>
+        <div style="position:absolute; top:5%; left:60%; font-size:10px;">Norte</div>
+        <div style="position:absolute; bottom:5%; left:60%; font-size:10px;">Sur</div>
+    </div>
+    <div id="historial"><div id="log-list"></div></div>
 </div>
 
 <div id="main-game">
@@ -55,8 +67,9 @@
         <div id="card-container">
             <img id="card-img" src="">
             <div class="card-info">
-                <h3 id="card-label">Identifica el Misterio</h3>
-                <p id="hint-text">Observa la imagen con atención...</p>
+                <h3 id="card-label">¿Qué es esto?</h3>
+                <p id="hint-display" style="font-size:14px; color:#666;">Observa la imagen...</p>
+                <button class="btn btn-pista" onclick="mostrarPista()">Obtener Pista 💡</button>
                 <button id="btn-resolver" class="btn btn-main" onclick="abrirPregunta()">Resolver</button>
                 <button id="btn-siguiente" class="btn btn-main hidden" style="background:var(--success)" onclick="nuevoTurno()">Siguiente Hito</button>
             </div>
@@ -66,35 +79,26 @@
 
 <div id="modal-overlay">
     <div id="modal-content">
-        <h3>¿Qué es esto?</h3>
-        <input type="text" id="respuesta-user" placeholder="Escribe el nombre...">
+        <h3>¿Cómo se llama?</h3>
+        <input type="text" id="respuesta-user" placeholder="Escribe aquí...">
         <button class="btn btn-main" onclick="confirmar()">Confirmar</button>
     </div>
 </div>
 
 <script>
-    // Configuración de Mitos y Trucos
     const mitos = [
-        { id: "AM-01CL", n: "Licanantay", img: "licanantay.jpg" },
-        { id: "AM-02CL", n: "La Tirana", img: "la_tirana.jpg" },
-        { id: "AM-03CL", n: "Alicanto", img: "ojo_alicanto.jpg" },
-        { id: "AM-15CL", n: "Camino a Santiago", img: "camino_santiago.jpg" },
-        { id: "AM-25CL", n: "El Caleuche", img: "caleuche.jpg" },
-        { id: "AM-26CL", n: "El Trauco", img: "el_trauco.jpg" }
+        { id: "AM-01CL", n: "Licanantay", img: "licanantay.jpg", pista: "Es el protector de las cabras y animales del norte." },
+        { id: "AM-02CL", n: "La Tirana", img: "la_tirana.jpg", pista: "Es una reina inca que baila en el desierto." },
+        { id: "AM-03CL", n: "Alicanto", img: "ojo_alicanto.jpg", pista: "Un pájaro que come oro y plata." },
+        { id: "AM-15CL", n: "Camino a Santiago", img: "camino_santiago.jpg", pista: "Es una ruta muy antigua hacia la capital." },
+        { id: "AM-25CL", n: "El Caleuche", img: "caleuche.jpg", pista: "Un barco fantasma que navega por Chiloé." },
+        { id: "AM-26CL", n: "El Trauco", img: "el_trauco.jpg", pista: "Un hombre pequeñito que vive en los bosques del sur." }
     ];
 
-    const trucos = [
-        { n: "Corriente Humboldt", img: "truco_corriente_humboldt.jpg", eff: 15, msg: "¡Viento a favor! Avanzas extra." },
-        { n: "Derrumbe Andino", img: "truco_derrumbe_andino.jpg", eff: -15, msg: "Camino bloqueado. Retrocedes." }
-    ];
-
-    let actual = null;
-    let pos = 10;
-    let dir = 'NORTE';
+    let actual = null, pos = 10, dir = 'NORTE';
 
     function iniciar(modo) {
-        dir = modo;
-        pos = (modo === 'NORTE') ? 5 : 85;
+        dir = modo; pos = (modo === 'NORTE') ? 5 : 85;
         document.getElementById('setup').classList.add('hidden');
         document.getElementById('game').classList.remove('hidden');
         document.getElementById('marcador').style.top = pos + "%";
@@ -104,71 +108,57 @@
     function nuevoTurno() {
         document.getElementById('btn-resolver').classList.remove('hidden');
         document.getElementById('btn-siguiente').classList.add('hidden');
+        document.getElementById('hint-display').innerText = "Observa la imagen...";
         
-        // 25% prob de Truco
-        if (Math.random() < 0.25) {
-            actual = trucos[Math.floor(Math.random() * trucos.length)];
-            actual.esTruco = true;
-            document.getElementById('card-img').src = `imagenes/trucos/${actual.img}`;
-            document.getElementById('card-label').innerText = "¡EVENTO!";
-            document.getElementById('hint-text').innerText = actual.n;
-        } else {
-            actual = mitos[Math.floor(Math.random() * mitos.length)];
-            actual.esTruco = false;
-            document.getElementById('card-img').src = `imagenes/mitos/${actual.img}`;
-            document.getElementById('card-label').innerText = "Identifica el Misterio";
-            document.getElementById('hint-text').innerText = "???";
-        }
+        actual = mitos[Math.floor(Math.random() * mitos.length)];
+        document.getElementById('card-img').src = `imagenes/mitos/${actual.img}`;
+    }
+
+    function mostrarPista() {
+        document.getElementById('hint-display').innerText = "Pista: " + actual.pista;
     }
 
     function abrirPregunta() {
-        if (actual.esTruco) {
-            ejecutarTruco();
-        } else {
-            document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('respuesta-user').focus();
-        }
+        document.getElementById('modal-overlay').style.display = 'flex';
+        document.getElementById('respuesta-user').value = "";
+        document.getElementById('respuesta-user').focus();
+    }
+
+    // Acepta respuestas con un margen de error (para niños)
+    function esCercano(str1, str2) {
+        str1 = str1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        str2 = str2.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (str1.includes(str2) || str2.includes(str1)) return true;
+        return false;
     }
 
     function confirmar() {
-        const res = document.getElementById('respuesta-user').value.trim().toLowerCase();
+        const res = document.getElementById('respuesta-user').value.trim();
         document.getElementById('modal-overlay').style.display = 'none';
-        document.getElementById('respuesta-user').value = "";
 
-        // Validación simple: debe contener parte del nombre
-        if (res !== "" && actual.n.toLowerCase().includes(res)) {
-            mover(12, `Correcto: ${actual.n}`);
-            document.getElementById('hint-text').innerHTML = `<span style="color:var(--success)">¡Acertaste! Es ${actual.n}</span>`;
+        if (esCercano(actual.n, res)) {
+            mover(15, `¡Bien hecho! Era ${actual.n}`);
+            document.getElementById('hint-display').innerHTML = `<b style="color:var(--success)">¡Correcto!</b>`;
             document.getElementById('btn-resolver').classList.add('hidden');
             document.getElementById('btn-siguiente').classList.remove('hidden');
         } else {
-            addLog(`Fallaste en ${actual.id || 'Mito'}. Te mantienes.`);
-            alert("No es correcto. ¡Mira bien la imagen!");
+            addLog(`Intento fallido en ${actual.n}.`);
+            alert("¡Casi! Intenta de nuevo o pide una pista.");
         }
     }
 
-    function ejecutarTruco() {
-        mover(actual.eff, `Truco: ${actual.n}`);
-        document.getElementById('hint-text').innerText = actual.msg;
-        document.getElementById('btn-resolver').classList.add('hidden');
-        document.getElementById('btn-siguiente').classList.remove('hidden');
-    }
-
-    function mover(puntos, detalle) {
-        let avance = (dir === 'NORTE') ? puntos : -puntos;
+    function mover(pts, msg) {
+        let avance = (dir === 'NORTE') ? pts : -pts;
         pos += avance;
         if (pos < 5) pos = 5; if (pos > 90) pos = 90;
-        
         document.getElementById('marcador').style.top = pos + "%";
-        addLog(`${detalle} (${avance > 0 ? '+' : ''}${avance}%)`);
+        addLog(msg);
     }
 
-    function addLog(msg) {
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.innerText = `> ${msg}`;
-        const list = document.getElementById('log-list');
-        list.prepend(entry);
+    function addLog(m) {
+        const e = document.createElement('div'); e.className = 'log-entry';
+        e.innerText = `> ${m}`;
+        const l = document.getElementById('log-list'); l.prepend(e);
     }
 </script>
 </body>
