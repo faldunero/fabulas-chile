@@ -5,144 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Misterios de Chile - Ludolab.cl</title>
     <style>
-        :root { --primary: #2c3e50; --norte: #e67e22; --centro: #27ae60; --sur: #2980b9; --gold: #f1c40f; }
-        body { font-family: 'Arial', sans-serif; background: #ececec; margin: 0; display: flex; justify-content: center; }
-        #game-screen { max-width: 900px; width: 100%; display: grid; grid-template-columns: 250px 1fr; gap: 20px; padding: 20px; }
+        :root { --primary: #1a2a3a; --accent: #f39c12; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Mapa Vertical de Chile */
-        #mapa-container { background: #fff; border-radius: 15px; padding: 15px; border: 2px solid #ddd; height: 85vh; display: flex; flex-direction: column; position: relative; }
-        .zona-mapa { flex: 1; display: flex; align-items: center; justify-content: center; border-bottom: 1px dashed #ccc; font-weight: bold; color: #999; position: relative; transition: 0.3s; }
-        .zona-mapa.activa { color: var(--primary); background: rgba(241, 196, 15, 0.1); }
-        #marcador-jugador { position: absolute; left: 20px; font-size: 24px; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; }
+        /* Contenedor del Mapa Ilustrado */
+        #sidebar-mapa { width: 350px; background: #fff; border-right: 2px solid #ddd; display: flex; flex-direction: column; padding: 10px; position: relative; }
+        #chile-map-bg { 
+            flex: 1; 
+            background: url('https://i.pinimg.com/originals/82/8e/3c/828e3c155554199650059c6b76774e17.jpg') no-repeat center; 
+            background-size: contain; 
+            position: relative;
+            border-radius: 15px;
+        }
+        
+        /* Marcador de Posición */
+        #marcador { 
+            position: absolute; 
+            font-size: 30px; 
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
         /* Área de Juego */
-        #play-area { display: flex; flex-direction: column; align-items: center; }
-        #card-slot { width: 320px; height: 450px; background: #fff; border-radius: 20px; border: 10px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; position: relative; }
-        #card-slot img { width: 100%; height: 100%; object-fit: cover; }
+        #main-game { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        #card-container { 
+            width: 350px; background: #fff; border-radius: 25px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; 
+            text-align: center; border: 4px solid var(--primary);
+        }
+        #card-img { width: 100%; height: 400px; object-fit: cover; background: #eee; }
         
-        .ui-panel { background: #fff; width: 100%; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .btn { padding: 15px 40px; font-size: 20px; cursor: pointer; border: none; border-radius: 50px; background: var(--primary); color: white; font-weight: bold; transition: 0.3s; margin: 10px; }
-        .btn:hover { transform: scale(1.05); background: #34495e; }
-        .btn-inicio { background: var(--gold); color: #000; }
-        
+        .card-info { padding: 20px; }
+        .card-info h2 { margin: 0; color: var(--primary); font-size: 28px; }
+        .card-info p { color: #666; font-style: italic; margin: 10px 0; min-height: 40px; }
+
+        /* Botones */
+        .controls { display: flex; gap: 10px; justify-content: center; padding-bottom: 20px; }
+        .btn { padding: 12px 25px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
+        .btn-main { background: var(--primary); color: white; flex: 2; }
+        .btn-sub { background: #dcdde1; color: #7f8c8d; flex: 1; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
         .hidden { display: none; }
-        #log { font-style: italic; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div id="game-screen">
-    <!-- Columna Izquierda: El Mapa -->
-    <div id="mapa-container">
-        <div id="marcador-jugador">📍</div>
-        <div class="zona-mapa" id="m-0">Arica y Parinacota</div>
-        <div class="zona-mapa" id="m-1">Tarapacá / Antofagasta</div>
-        <div class="zona-mapa" id="m-2">Atacama / Coquimbo</div>
-        <div class="zona-mapa" id="m-3">Valparaíso / Santiago</div>
-        <div class="zona-mapa" id="m-4">O'Higgins / Maule</div>
-        <div class="zona-mapa" id="m-5">Ñuble / Biobío</div>
-        <div class="zona-mapa" id="m-6">Araucanía / Los Ríos</div>
-        <div class="zona-mapa" id="m-7">Los Lagos (Chiloé)</div>
-        <div class="zona-mapa" id="m-8">Aysén / Magallanes</div>
+<div id="sidebar-mapa">
+    <h3 style="text-align: center; color: var(--primary);">Expedición Chile</h3>
+    <div id="chile-map-bg">
+        <div id="marcador">📍</div>
+    </div>
+</div>
+
+<div id="main-game">
+    <div id="setup" class="card-info">
+        <h1>Misterios de Chile</h1>
+        <p>Selecciona tu punto de inicio</p>
+        <button class="btn btn-main" onclick="start('NORTE')">Desde el Norte 🌵</button>
+        <button class="btn btn-main" onclick="start('SUR')">Desde el Sur ❄️</button>
     </div>
 
-    <!-- Columna Derecha: Acción -->
-    <div id="play-area">
-        <h1>Misterios de Chile</h1>
-        
-        <div id="setup-screen" class="ui-panel">
-            <h2>Investigación Ludolab</h2>
-            <p>Selecciona tu ruta de inicio:</p>
-            <button class="btn btn-inicio" onclick="startGame('NORTE')">Desde el Norte 🌵</button>
-            <button class="btn btn-inicio" onclick="startGame('SUR')">Desde el Sur ❄️</button>
-        </div>
-
-        <div id="game-ui" class="hidden">
-            <div id="card-slot">
-                <img id="main-card" src="imagenes/mitos/licanantay.jpg" alt="Mito">
-            </div>
-            
-            <div class="ui-panel">
-                <h2 id="card-title">Cargando...</h2>
-                <div id="log">Esperando acción...</div>
-                <button id="btn-action" class="btn" onclick="nextMove()">Resolver Misterio</button>
-                <button class="btn" style="background:#ccc; font-size: 14px;" onclick="location.reload()">Reiniciar</button>
+    <div id="game" class="hidden">
+        <div id="card-container">
+            <img id="card-img" src="" alt="Mito">
+            <div class="card-info">
+                <h2 id="card-title">-</h2>
+                <p id="card-desc">Cargando misterio...</p>
+                <div class="controls">
+                    <button class="btn btn-main" onclick="play()">Resolver Misterio</button>
+                    <button class="btn btn-sub" onclick="location.reload()">Reiniciar</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Rotación masiva de 40 mitos (simplificada para el ejemplo, pero lista para expandir)
+    // Lista de mitos con posiciones (0 = Arica, 100 = Magallanes)
     const mitos = [
-        { n: "Licanantay", id: "AM-01CL", pos: 0, img: "licanantay.jpg" },
-        { n: "La Tirana", id: "AM-02CL", pos: 1, img: "la_tirana.jpg" },
-        { n: "Alicanto", id: "AM-03CL", pos: 2, img: "ojo_alicanto.jpg" },
-        { n: "Camino a Santiago", id: "AM-15CL", pos: 3, img: "camino_santiago.jpg" },
-        { n: "La Llorona", id: "AM-18CL", pos: 4, img: "la_llorona.jpg" },
-        { n: "El Caleuche", id: "AM-25CL", pos: 7, img: "caleuche.jpg" },
-        { n: "El Trauco", id: "AM-26CL", pos: 7, img: "el_trauco.jpg" },
-        { n: "Cuero de Agua", id: "AM-30CL", pos: 8, img: "cuero_agua_sur.jpg" }
-        // Agrega aquí los 40 nombres de tus archivos JPG
+        { n: "Licanantay", img: "licanantay.jpg", pos: 5 },
+        { n: "La Tirana", img: "la_tirana.jpg", pos: 15 },
+        { n: "Alicanto", img: "ojo_alicanto.jpg", pos: 25 },
+        { n: "Camino a Santiago", img: "camino_santiago.jpg", pos: 45 },
+        { n: "La Llorona", img: "la_llorona.jpg", pos: 55 },
+        { n: "El Caleuche", img: "caleuche.jpg", pos: 75 },
+        { n: "El Trauco", img: "el_trauco.jpg", pos: 85 },
+        { n: "Cuero de Agua", img: "cuero_agua_sur.jpg", pos: 95 }
     ];
 
     const trucos = [
-        { n: "Corriente Humboldt", eff: 1, msg: "¡Viento a favor! Avanzas rápido.", img: "truco_corriente_humboldt.jpg" },
-        { n: "Derrumbe Andino", eff: -1, msg: "Camino bloqueado. Retrocedes.", img: "truco_derrumbe_andino.jpg" },
-        { n: "Niebla Marina", eff: 0, msg: "Te pierdes en la niebla. Te quedas aquí.", img: "truco_niebla_marina.jpg" }
+        { n: "Corriente Humboldt", img: "truco_corriente_humboldt.jpg", move: 10 },
+        { n: "Derrumbe Andino", img: "truco_derrumbe_andino.jpg", move: -10 }
     ];
 
     let currentPos = 0;
-    let direction = "NORTE";
+    let dir = 'NORTE';
 
-    function startGame(dir) {
-        direction = dir;
-        currentPos = (dir === "NORTE") ? 0 : 8;
-        document.getElementById('setup-screen').classList.add('hidden');
-        document.getElementById('game-ui').classList.remove('hidden');
-        updateUI(mitos[0], "Tu investigación comienza aquí.");
+    function start(modo) {
+        dir = modo;
+        currentPos = (modo === 'NORTE') ? 0 : 90;
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
+        play(); // Carga la primera carta
     }
 
-    function updateUI(item, message) {
-        const isTruco = item.eff !== undefined;
-        const folder = isTruco ? "trucos" : "mitos";
-        
-        document.getElementById('main-card').src = `imagenes/${folder}/${item.img}`;
-        document.getElementById('card-title').innerText = item.n || item.nombre;
-        document.getElementById('log').innerText = message;
-        
-        // Mover marcador en el mapa
-        const zonaEl = document.getElementById(`m-${currentPos}`);
-        const marcador = document.getElementById('marcador-jugador');
-        marcador.style.top = (zonaEl.offsetTop + 10) + "px";
-        
-        document.querySelectorAll('.zona-mapa').forEach(z => z.classList.remove('activa'));
-        zonaEl.classList.add('activa');
-    }
+    function play() {
+        let isTruco = Math.random() < 0.25;
+        let item;
 
-    function nextMove() {
-        // Lógica de rotación: 20% Probabilidad de Truco
-        if (Math.random() < 0.25) {
-            const t = trucos[Math.floor(Math.random() * trucos.length)];
-            currentPos += (direction === "NORTE") ? t.eff : -t.eff;
-            checkLimits();
-            updateUI(t, `¡EVENTO!: ${t.msg}`);
+        if (isTruco) {
+            item = trucos[Math.floor(Math.random() * trucos.length)];
+            currentPos += (dir === 'NORTE') ? item.move : -item.move;
+            render(item, "trucos", `¡Evento! ${item.n}`);
         } else {
-            // Avance normal por Mitos
-            const m = mitos[Math.floor(Math.random() * mitos.length)];
-            if (direction === "NORTE") currentPos++; else currentPos--;
-            checkLimits();
-            updateUI(m, "Has descubierto un nuevo mito. ¡Avanzas!");
+            // Avance normal hacia el siguiente mito
+            item = mitos[Math.floor(Math.random() * mitos.length)];
+            currentPos += (dir === 'NORTE') ? 12 : -12;
+            render(item, "mitos", "Has descubierto un nuevo mito. ¡Avanzas!");
         }
-    }
 
-    function checkLimits() {
+        // Límites
         if (currentPos < 0) currentPos = 0;
-        if (currentPos > 8) {
-            alert("¡Has recorrido todo Chile! Gran trabajo investigador.");
+        if (currentPos > 95) {
+            alert("¡Misión cumplida! Has recorrido todo Chile.");
             location.reload();
         }
+        
+        // Mover marcador 📍
+        document.getElementById('marcador').style.top = currentPos + "%";
+    }
+
+    function render(item, folder, msg) {
+        document.getElementById('card-img').src = `imagenes/${folder}/${item.img}`;
+        document.getElementById('card-title').innerText = item.n;
+        document.getElementById('card-desc').innerText = msg;
     }
 </script>
+
 </body>
 </html>
