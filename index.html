@@ -3,195 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Misterios de Chile</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Misterios de Chile - Ludolab</title>
     <style>
-        .progreso-suave { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        :root {
+            --primary: #2c3e50;
+            --norte: #e67e22;
+            --centro: #27ae60;
+            --sur: #2980b9;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        #game-container { max-width: 800px; width: 100%; padding: 20px; text-align: center; }
+        
+        /* Mapa Visual */
+        #mapa { display: flex; justify-content: space-around; background: #ddd; padding: 20px; border-radius: 15px; margin: 20px 0; position: relative; }
+        .zona { padding: 15px; border-radius: 10px; color: white; flex: 1; margin: 0 5px; opacity: 0.3; transition: 0.3s; font-weight: bold; }
+        .zona.activa { opacity: 1; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .norte { background: var(--norte); }
+        .centro { background: var(--centro); }
+        .sur { background: var(--sur); }
+
+        /* Pantalla de Carta */
+        #carta-display { height: 380px; margin: 20px auto; border: 8px solid var(--primary); border-radius: 20px; overflow: hidden; background: #fff; width: 280px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        #carta-display img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Controles y Texto */
+        .btn { padding: 15px 30px; font-size: 18px; cursor: pointer; border: none; border-radius: 8px; background: var(--primary); color: white; margin: 10px; transition: 0.3s; font-weight: bold; }
+        .btn:hover { background: #34495e; transform: translateY(-2px); }
+        .hidden { display: none; }
+        #feedback { min-height: 1.5em; font-size: 1.1em; color: #555; margin: 10px 0; }
+        #ubicacion-nombre { color: var(--primary); margin-top: 0; }
     </style>
 </head>
-<body class="bg-stone-100 min-h-screen text-slate-800">
-    <header class="bg-blue-900 text-white p-6 text-center shadow-md">
-        <h1 class="text-2xl font-bold tracking-tighter uppercase">Expedición Leyendas de Chile</h1>
-        <div id="marcador-pasos" class="text-blue-200 text-sm mt-1 font-mono">Posición: 0%</div>
-    </header>
+<body>
 
-    <main class="max-w-2xl mx-auto p-4">
-        <!-- MAPA DE AVANCE -->
-        <!-- Mapa con Gráfica de Pergamino -->
-<section class="mb-8 relative p-4 rounded-xl shadow-2xl overflow-hidden border-4 border-amber-900/20">
-    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/old-map.png')] opacity-30"></div>
-    <h2 class="relative text-sm font-black text-amber-900 uppercase mb-4 tracking-widest text-center">Ruta de los Guardianes</h2>
-    
-    <div class="relative h-12 bg-amber-100/50 rounded-lg border-2 border-amber-800/30 flex items-center px-2">
-        <!-- El Token del Jugador (Icono) -->
-        <div id="jugador-token" class="progreso-suave absolute text-3xl z-10" style="left: 0%; transform: translateX(-50%);">
-            🚶‍♂️
-        </div>
-        <!-- Barra de Progreso -->
-        <div id="barra" class="progreso-suave h-4 bg-gradient-to-r from-amber-600 to-amber-900 rounded-full shadow-inner" style="width: 0%"></div>
+<div id="game-container">
+    <h1>Misterios de Chile</h1>
+    <p>Desarrollado por <strong>Ludolab.cl</strong></p>
+
+    <!-- Selección de Inicio -->
+    <div id="inicio">
+        <h3>Elige tu punto de partida para la investigación:</h3>
+        <button class="btn" onclick="iniciarJuego('NORTE')">Ruta Norte (Arica) 🌵</button>
+        <button class="btn" onclick="iniciarJuego('SUR')">Ruta Sur (Punta Arenas) ❄️</button>
     </div>
-</section>
 
-        <!-- PANTALLA DE JUEGO -->
-<div id="pantalla" class="bg-white rounded-3xl p-8 shadow-xl border-b-8 border-slate-200">
-    <div id="contenido-juego" class="flex flex-col items-center">
-        <!-- Carta de Poker Visual -->
-        <div id="contenedor-carta" class="relative w-56 h-80 bg-white rounded-2xl shadow-2xl border-8 border-white overflow-hidden mb-6 transform rotate-1 transition-transform hover:rotate-0">
-            <img id="mito-imagen" src="/imagenes/placeholder.jpg" class="w-full h-full object-cover" alt="Carta de Leyenda">
-            <div id="tag-zona" class="absolute top-2 right-2 bg-amber-700 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-md"></div>
+    <!-- Interfaz de Juego -->
+    <div id="juego" class="hidden">
+        <div id="mapa">
+            <div id="z-norte" class="zona norte">NORTE</div>
+            <div id="z-centro" class="zona centro">CENTRO</div>
+            <div id="z-sur" class="zona sur">SUR</div>
         </div>
 
-        <!-- Texto y Opciones -->
-        <div class="w-full">
-            <h2 id="mito-titulo" class="text-3xl font-black mb-2 text-slate-800 text-center uppercase tracking-tighter"></h2>
-            <p id="mito-historia" class="mb-6 italic text-slate-600 text-center px-4 leading-tight"></p>
-            
-            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                <p id="mito-pregunta" class="font-bold text-lg mb-4 text-slate-700 text-center"></p>
-                <div id="opciones" class="grid gap-3"></div>
-            </div>
+        <div id="info">
+            <h2 id="ubicacion-nombre">Hito: -</h2>
+            <div id="feedback">Cargando misterios...</div>
         </div>
+
+        <div id="carta-display">
+            <img id="carta-img" src="" alt="Cargando carta...">
+        </div>
+
+        <div id="controles">
+            <button id="btn-accion" class="btn" onclick="proximoTurno()">Investigar Próximo Hito</button>
+            <button class="btn" style="background:#7f8c8d;" onclick="location.reload()">Reiniciar</button>
+        </div>
+        <h2 id="mensaje-final" style="color: #27ae60;"></h2>
     </div>
 </div>
-        <!-- ÁLBUM DE ESENCIAS -->
-        <div id="esencias" class="grid grid-cols-4 gap-2 mt-6">
-            <!-- Se llena con JS -->
-        </div>
-    </main>
 
-   <script>
-    let posicionJugador = 0;
-    let mitos = [];
+<script>
+    // Lista de Mitos sincronizada con tu carpeta imagenes/mitos/
+    const ruta = [
+        { id: "AM-01CL", nombre: "Licanantay", zona: "norte", img: "imagenes/mitos/licanantay.jpg" },
+        { id: "AM-05CL", nombre: "La Tirana", zona: "norte", img: "imagenes/mitos/la_tirana.jpg" },
+        { id: "AM-15CL", nombre: "Camino a Santiago", zona: "centro", img: "imagenes/mitos/camino_santiago.jpg" },
+        { id: "AM-25CL", nombre: "El Caleuche", zona: "sur", img: "imagenes/mitos/caleuche.jpg" },
+        { id: "AM-35CL", nombre: "El Trauco", zona: "sur", img: "imagenes/mitos/el_trauco.jpg" }
+    ];
+
+    // Lista de Trucos sincronizada con imagenes/trucos/
+    const trucos = [
+        { nombre: "Corriente de Humboldt", efecto: 1, msg: "¡Vientos favorables! Avanzas un hito extra.", img: "imagenes/trucos/truco_corriente_humboldt.jpg" },
+        { nombre: "Derrumbe Andino", efecto: -1, msg: "El camino está bloqueado. Retrocedes para buscar otra ruta.", img: "imagenes/trucos/truco_derrumbe_andino.jpg" }
+    ];
+
     let indiceActual = 0;
+    let direccion = "NORTE";
+    let juegoTerminado = false;
 
-    async function iniciar() {
-        try {
-            // Cambiamos a la ruta de tu archivo estático o API
-            const res = await fetch('/data/leyendas.json'); 
-            mitos = await res.json();
-            renderEsencias();
-            cargarMito(0);
-        } catch (error) {
-            console.error("Error cargando el JSON:", error);
-        }
+    function iniciarJuego(modo) {
+        direccion = modo;
+        indiceActual = (modo === "NORTE") ? 0 : ruta.length - 1;
+        document.getElementById('inicio').classList.add('hidden');
+        document.getElementById('juego').classList.remove('hidden');
+        actualizarInterfaz("¡Comienza la aventura! Resuelve el primer misterio.");
     }
 
-    function renderEsencias() {
-        const zonas = ['Norte', 'Centro', 'Sur', 'Austral', 'Rapa Nui'];
-        document.getElementById('esencias').innerHTML = zonas.map(z => `
-            <div id="e-${z.replace(' ', '')}" class="bg-white p-2 rounded-lg text-center opacity-30 grayscale transition-all">
-                <span class="text-2xl">💎</span>
-                <p class="text-[10px] font-bold">${z}</p>
-            </div>
-        `).join('');
-    }
-
-    function cargarMito(index) {
-        if(index >= mitos.length) {
-            document.getElementById('contenido-juego').innerHTML = "<h2 class='text-2xl font-bold'>¡Felicidades Felipe! Completaste la ruta de Ludolab.cl</h2>";
-            return;
-        }
-
-        indiceActual = index;
-        const m = mitos[index];
-        const esTruco = m.tipo === "truco";
+    function actualizarInterfaz(mensaje) {
+        const hito = ruta[indiceActual];
+        document.getElementById('ubicacion-nombre').innerText = `Ubicación: ${hito.nombre} (${hito.id})`;
+        document.getElementById('carta-img').src = hito.img;
+        document.getElementById('feedback').innerText = mensaje;
         
-        // Definir la ruta de la imagen según la carpeta
-        const rutaImagen = esTruco 
-            ? `/imagenes/trucos/${m.slug}.jpg` 
-            : `/imagenes/mitos/${m.slug}.jpg`;
-
-        document.getElementById('contenido-juego').innerHTML = `
-            <div class="flex flex-col items-center">
-                <span class="text-orange-500 font-bold uppercase text-sm">${m.zona || 'Evento'}</span>
-                <h2 class="text-3xl font-black mb-4">${m.nombre}</h2>
-                
-                <!-- Visualizador de la Carta -->
-                <img src="${rutaImagen}" alt="${m.nombre}" class="w-64 h-auto rounded-2xl shadow-2xl mb-6 border-4 border-white">
-                
-                ${esTruco ? `
-                    <div class="bg-yellow-100 p-6 rounded-2xl border-2 border-yellow-400 text-center">
-                        <p class="text-lg font-bold text-yellow-800">${m.msg}</p>
-                        <button onclick="aplicarTruco(${index})" class="mt-4 px-6 py-2 bg-yellow-500 text-white rounded-full font-bold">ENTENDIDO</button>
-                    </div>
-                ` : `
-                    <div class="bg-slate-50 p-4 rounded-2xl w-full">
-                        <p class="font-bold mb-4 text-center">¿En qué lugar de Chile ocurre esto?</p>
-                        <div class="grid gap-2">
-                            ${m.opciones.map((op) => `
-                                <button onclick="check('${op}', '${m.correcta}', '${m.zona}')" class="p-3 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-500 transition-all text-left font-medium">
-                                    ${op}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `}
-            </div>
-        `;
+        // Actualizar zonas en el mapa
+        document.querySelectorAll('.zona').forEach(z => z.classList.remove('activa'));
+        const zonaActiva = document.getElementById(`z-${hito.zona}`);
+        if(zonaActiva) zonaActiva.classList.add('activa');
     }
 
-    function check(elegida, correcta, zona) {
-        if(elegida === correcta) {
-            alert("¡Correcto!");
-            actualizarPosicion(10); // Avanza 10 puntos por acierto
+    function proximoTurno() {
+        if (juegoTerminado) return;
+
+        // Probabilidad de evento aleatorio (Truco)
+        if (Math.random() < 0.25) {
+            const t = trucos[Math.floor(Math.random() * trucos.length)];
+            document.getElementById('carta-img').src = t.img;
+            document.getElementById('feedback').innerText = t.msg;
             
-            // Iluminar esencia de la zona
-            const idZona = zona.replace(' ', '');
-            if(document.getElementById(`e-${idZona}`)) {
-                document.getElementById(`e-${idZona}`).classList.remove('opacity-30', 'grayscale');
-            }
+            // Aplicar efecto del truco según la dirección de viaje
+            if (direccion === "NORTE") indiceActual += t.efecto;
+            else indiceActual -= t.efecto;
 
-            // Probabilidad del 20% de que aparezca un truco aleatorio antes de la siguiente
-            if(Math.random() < 0.2) {
-                lanzarEventoAleatorio();
-            } else {
-                cargarMito(indiceActual + 1);
-            }
         } else {
-            alert("Error. La leyenda te hace retroceder.");
-            actualizarPosicion(-5);
+            // Avance normal
+            if (direccion === "NORTE") indiceActual++;
+            else indiceActual--;
+            document.getElementById('feedback').innerText = "Misterio resuelto. Sigues avanzando por el territorio.";
+        }
+
+        // Validar límites y fin de juego
+        if (indiceActual < 0) {
+            indiceActual = 0;
+        } else if (indiceActual >= ruta.length) {
+            finalizar();
+        } else {
+            actualizarInterfaz(document.getElementById('feedback').innerText);
         }
     }
 
-    function aplicarTruco(index) {
-        const truco = mitos[index];
-        if (typeof truco.efecto === "number") {
-            actualizarPosicion(truco.efecto * 10); // Multiplicamos por 10 para que se note en la barra
-        }
-        cargarMito(indiceActual + 1);
+    function finalizar() {
+        juegoTerminado = true;
+        document.getElementById('mensaje-final').innerText = "🎉 ¡Felicidades! Has completado la travesía por Chile.";
+        document.getElementById('btn-accion').classList.add('hidden');
+        document.getElementById('feedback').innerText = "Investigación terminada con éxito.";
     }
-
-    function lanzarEventoAleatorio() {
-        const trucos = mitos.filter(m => m.tipo === "truco");
-        const azar = trucos[Math.floor(Math.random() * trucos.length)];
-        
-        // Mostramos el truco temporalmente
-        document.getElementById('contenido-juego').innerHTML = `
-            <div class="flex flex-col items-center animate-bounce">
-                <h2 class="text-2xl font-black text-red-600 mb-4">¡EVENTO SORPRESA!</h2>
-                <img src="/imagenes/trucos/${azar.slug}.jpg" class="w-64 h-auto rounded-2xl shadow-2xl mb-4 border-4 border-red-500">
-                <p class="text-center font-bold">${azar.msg}</p>
-                <button onclick="finalizarEvento(${azar.efecto === 'pierde_turno' ? 0 : azar.efecto})" class="mt-4 px-6 py-2 bg-red-600 text-white rounded-full">CONTINUAR</button>
-            </div>
-        `;
-    }
-
-    function finalizarEvento(puntos) {
-        if(typeof puntos === "number") actualizarPosicion(puntos * 10);
-        cargarMito(indiceActual + 1);
-    }
-
-    function actualizarPosicion(valor) {
-        posicionJugador += valor;
-        if(posicionJugador < 0) posicionJugador = 0;
-        if(posicionJugador > 400) posicionJugador = 400;
-        
-        const progreso = (posicionJugador / 400) * 100;
-        const barra = document.getElementById('barra-progreso');
-        if(barra) barra.style.width = `${progreso}%`;
-    }
-
-    iniciar();
 </script>
+
 </body>
 </html>
