@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1, "slug": "alicanto", "zona": "Norte", "titulo": "El Alicanto", "posicion": 15,
+    "historia": "Un ave de alas brillantes que come oro. Si eres ambicioso, te perderá.",
+    "pregunta": "¿En qué zona de Chile vive el Alicanto?",
+    "opciones": ["En los glaciares", "En el Desierto de Atacama", "En las Torres del Paine"],
+    "correcta": 1,
+    "evento": { "nombre": "Tormenta de Arena", "efecto": -2, "msg": "¡La visibilidad es nula! Retrocedes 2 pasos." }
+  },
+  {
+    "id": 2, "slug": "caleuche", "zona": "Sur", "titulo": "El Caleuche", "posicion": 65,
+    "historia": "Barco fantasma que navega por los canales de Chiloé con música y luces.",
+    "pregunta": "¿Qué es un archipiélago como Chiloé?",
+    "opciones": ["Un conjunto de islas", "Una montaña muy alta", "Un río seco"],
+    "correcta": 0,
+    "evento": { "nombre": "Corriente a Favor", "efecto": 5, "msg": "¡El mar está calmo! Avanzas 5 pasos extra." }
+  }
+]
