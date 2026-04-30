@@ -3,163 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Misterios de Chile - Ludolab.cl</title>
+    <title>Misterios de Chile - Ludolab</title>
     <style>
-        :root { --primary: #1a2a3a; --accent: #f39c12; --bg: #f0f2f5; --success: #27ae60; --error: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Lateral: Mapa CSS (No falla) */
-        #sidebar { width: 300px; background: #fff; border-right: 2px solid #ddd; display: flex; flex-direction: column; padding: 15px; }
-        #chile-map-css { 
-            flex: 1; position: relative; background: #e3f2fd; border-radius: 15px; 
-            overflow: hidden; border: 2px solid #bbdefb;
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            font-family: sans-serif;
         }
-        /* Silueta simplificada de Chile con CSS */
-        #silueta { 
-            position: absolute; left: 50%; top: 5%; bottom: 5%; width: 20px; 
-            background: #ffe082; transform: translateX(-50%) skewX(-2deg);
-            border-radius: 10px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+
+        /* CONTENEDOR DE LA TARJETA (SIN BLOQUE BLANCO) */
+        .tarjeta-misterio {
+            width: 90vw;
+            max-width: 450px;
+            height: 80vh; /* Altura ajustable según prefieras */
+            background-color: #1a2a3a; /* El azul oscuro del marco */
+            border: 12px solid #1a2a3a;
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
         }
-        #marcador { position: absolute; font-size: 30px; transition: all 0.8s ease; left: 50%; transform: translateX(-50%); z-index: 10; margin-top: -15px; }
-        
-        #historial { height: 150px; border-top: 2px solid #eee; padding-top: 10px; overflow-y: auto; font-size: 12px; }
-        .log-entry { padding: 4px; border-bottom: 1px solid #f9f9f9; }
 
-        /* Área Principal */
-        #main-game { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        #card-container { width: 320px; background: #fff; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); overflow: hidden; border: 5px solid var(--primary); }
-        #card-img { width: 100%; height: 350px; object-fit: cover; background: #eee; }
-        
-        .card-info { padding: 15px; text-align: center; }
-        .btn { padding: 12px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%; margin: 5px 0; }
-        .btn-main { background: var(--primary); color: white; }
-        .btn-pista { background: var(--accent); color: white; font-size: 12px; width: auto; padding: 5px 15px; }
+        /* LA IMAGEN COMPLETA */
+        .tarjeta-misterio img {
+            width: 100%;
+            height: 100%;
+            /* 'contain' asegura que la imagen se vea completa sin recortarse */
+            object-fit: contain; 
+            display: block;
+            border-radius: 25px; /* Suaviza las esquinas internas de la foto */
+        }
 
-        /* Modal */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        #modal-content { background: white; padding: 25px; border-radius: 20px; width: 280px; text-align: center; }
-        input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; text-align: center; font-size: 18px; }
-        
-        .hidden { display: none !important; }
+        /* Opcional: Un pequeño overlay para el ID si lo necesitas luego */
+        .id-badge {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.8);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #1a2a3a;
+        }
     </style>
 </head>
 <body>
 
-<div id="sidebar">
-    <h3 style="text-align: center;">Expedición Chile</h3>
-    <div id="chile-map-css">
-        <div id="silueta"></div>
-        <div id="marcador">📍</div>
-        <div style="position:absolute; top:5%; left:60%; font-size:10px;">Norte</div>
-        <div style="position:absolute; bottom:5%; left:60%; font-size:10px;">Sur</div>
-    </div>
-    <div id="historial"><div id="log-list"></div></div>
-</div>
-
-<div id="main-game">
-    <div id="setup">
-        <h1>Misterios de Chile</h1>
-        <button class="btn btn-main" onclick="iniciar('NORTE')">Ruta Norte 🌵</button>
-        <button class="btn btn-main" style="background:var(--accent)" onclick="iniciar('SUR')">Ruta Sur ❄️</button>
+    <div class="tarjeta-misterio">
+        <!-- El ID dinámico se puede inyectar aquí -->
+        <img id="img-principal" src="./imagenes/mitos/la_tirana.jpg" alt="Misterio de Chile">
+        <div class="id-badge" id="id-display">AM-02CL</div>
     </div>
 
-    <div id="game" class="hidden">
-        <div id="card-container">
-            <img id="card-img" src="">
-            <div class="card-info">
-                <h3 id="card-label">¿Qué es esto?</h3>
-                <p id="hint-display" style="font-size:14px; color:#666;">Observa la imagen...</p>
-                <button class="btn btn-pista" onclick="mostrarPista()">Obtener Pista 💡</button>
-                <button id="btn-resolver" class="btn btn-main" onclick="abrirPregunta()">Resolver</button>
-                <button id="btn-siguiente" class="btn btn-main hidden" style="background:var(--success)" onclick="nuevoTurno()">Siguiente Hito</button>
-            </div>
-        </div>
-    </div>
-</div>
+    <script>
+        // Si necesitas que cargue una aleatoria al inicio:
+        const mitos = [
+            { id: "AM-01CL", img: "./imagenes/mitos/licanantay.jpg" },
+            { id: "AM-02CL", img: "./imagenes/mitos/la_tirana.jpg" },
+            { id: "AM-03CL", img: "./imagenes/mitos/ojo_alicanto.jpg" },
+            { id: "AM-15CL", img: "./imagenes/mitos/camino_santiago.jpg" }
+        ];
 
-<div id="modal-overlay">
-    <div id="modal-content">
-        <h3>¿Cómo se llama?</h3>
-        <input type="text" id="respuesta-user" placeholder="Escribe aquí...">
-        <button class="btn btn-main" onclick="confirmar()">Confirmar</button>
-    </div>
-</div>
-
-<script>
-    const mitos = [
-        { id: "AM-01CL", n: "Licanantay", img: "licanantay.jpg", pista: "Es el protector de las cabras y animales del norte." },
-        { id: "AM-02CL", n: "La Tirana", img: "la_tirana.jpg", pista: "Es una reina inca que baila en el desierto." },
-        { id: "AM-03CL", n: "Alicanto", img: "ojo_alicanto.jpg", pista: "Un pájaro que come oro y plata." },
-        { id: "AM-15CL", n: "Camino a Santiago", img: "camino_santiago.jpg", pista: "Es una ruta muy antigua hacia la capital." },
-        { id: "AM-25CL", n: "El Caleuche", img: "caleuche.jpg", pista: "Un barco fantasma que navega por Chiloé." },
-        { id: "AM-26CL", n: "El Trauco", img: "el_trauco.jpg", pista: "Un hombre pequeñito que vive en los bosques del sur." }
-    ];
-
-    let actual = null, pos = 10, dir = 'NORTE';
-
-    function iniciar(modo) {
-        dir = modo; pos = (modo === 'NORTE') ? 5 : 85;
-        document.getElementById('setup').classList.add('hidden');
-        document.getElementById('game').classList.remove('hidden');
-        document.getElementById('marcador').style.top = pos + "%";
-        nuevoTurno();
-    }
-
-    function nuevoTurno() {
-        document.getElementById('btn-resolver').classList.remove('hidden');
-        document.getElementById('btn-siguiente').classList.add('hidden');
-        document.getElementById('hint-display').innerText = "Observa la imagen...";
-        
-        actual = mitos[Math.floor(Math.random() * mitos.length)];
-        document.getElementById('card-img').src = `imagenes/mitos/${actual.img}`;
-    }
-
-    function mostrarPista() {
-        document.getElementById('hint-display').innerText = "Pista: " + actual.pista;
-    }
-
-    function abrirPregunta() {
-        document.getElementById('modal-overlay').style.display = 'flex';
-        document.getElementById('respuesta-user').value = "";
-        document.getElementById('respuesta-user').focus();
-    }
-
-    // Acepta respuestas con un margen de error (para niños)
-    function esCercano(str1, str2) {
-        str1 = str1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        str2 = str2.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if (str1.includes(str2) || str2.includes(str1)) return true;
-        return false;
-    }
-
-    function confirmar() {
-        const res = document.getElementById('respuesta-user').value.trim();
-        document.getElementById('modal-overlay').style.display = 'none';
-
-        if (esCercano(actual.n, res)) {
-            mover(15, `¡Bien hecho! Era ${actual.n}`);
-            document.getElementById('hint-display').innerHTML = `<b style="color:var(--success)">¡Correcto!</b>`;
-            document.getElementById('btn-resolver').classList.add('hidden');
-            document.getElementById('btn-siguiente').classList.remove('hidden');
-        } else {
-            addLog(`Intento fallido en ${actual.n}.`);
-            alert("¡Casi! Intenta de nuevo o pide una pista.");
+        function shuffle() {
+            const misterio = mitos[Math.floor(Math.random() * mitos.length)];
+            document.getElementById('img-principal').src = misterio.img;
+            document.getElementById('id-display').innerText = misterio.id;
         }
-    }
 
-    function mover(pts, msg) {
-        let avance = (dir === 'NORTE') ? pts : -pts;
-        pos += avance;
-        if (pos < 5) pos = 5; if (pos > 90) pos = 90;
-        document.getElementById('marcador').style.top = pos + "%";
-        addLog(msg);
-    }
-
-    function addLog(m) {
-        const e = document.createElement('div'); e.className = 'log-entry';
-        e.innerText = `> ${m}`;
-        const l = document.getElementById('log-list'); l.prepend(e);
-    }
-</script>
+        // Descomenta si quieres que cambie al hacer click en la tarjeta
+        // document.querySelector('.tarjeta-misterio').onclick = shuffle;
+    </script>
 </body>
 </html>
